@@ -1,0 +1,62 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package com.santechture;
+
+
+import com.santechture.Group;
+import com.santechture.GroupRange;
+import com.santechture.Alert;
+import com.santechture.CodeType;
+import com.santechture.ValidateRequest.Claim;
+import com.santechture.ValidateRequest.Claim.Encounter;
+import com.santechture.ValidateRequest.Claim.Diagnosis;
+import com.santechture.ValidateRequest.Claim.Activity;
+
+global java.util.List alerts;
+
+rule FingGruop when
+    $g : Group(name == "Glucometer HCPCS", $r : ranges)
+    exists(GroupRange( codeFrom == "E0607"  ) from $r)
+
+then
+    alerts.add( new Alert());
+end
+
+rule 'J1034.00_Crosswalk_NSAID'
+when
+	$c: Claim()
+//	Encounter(type not in (3,4,5,6)) from $c.encounter
+	$diag_codes: java.util.List()
+	from accumulate( Diagnosis($diagCode:code) from $c.diagnosis,collectList($diagCode) )
+	$g: Group(name in ("NSAIDs_ICD_10","NSAIDs_ICD_9"))
+	not(GroupRange(group==$g , containsAnyCode($diag_codes)))
+//	$a: Activity($code:code, type==CodeType.TRADE_DRUG,net>0)
+//	$ag: Group ( name =="NSAIDs_drugs")
+//	GroupRange(group == $ag, containsCode($code))
+then
+    alerts.add(new Alert(
+
+    ));
+// 	$a.addOutcome(
+//             Severity.SEVERE,drools.getRule().getName(),
+//	"Drug "+$code+" is billed from NSAID's group and is not medically necessary as per the given conditions.Please see the long message below for your reference of conditions to be provided as per documentation.",
+//	"NSAID's /like aspirin,ibuprofen,diclofenac sodium,celecoxib,piroxicam etc/ are medically necessary for pain and inflammation conditions like joint pain arthritis,osteoarthritis,headache,tonsillitis,pharyngitis,sinusitis,rhinitis,asthma,laryngitis and other inflamatory conditions,migraine,spraina nd strains of muscles,periods pain, post-operative pain,spondylitis,spondylosis, disc disorders etc.");
+
+end
+
